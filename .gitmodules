@@ -1,0 +1,12 @@
+[submodule "vendor/imgui"]
+	path = vendor/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "vendor/log4cplus"]
+	path = vendor/log4cplus
+	url = https://github.com/log4cplus/log4cplus.git
+[submodule "vendor/stb"]
+	path = vendor/stb
+	url = https://github.com/nothings/stb.git
+[submodule "vendor/embed-resource"]
+	path = vendor/embed-resource
+	url = https://github.com/cyrilcode/embed-resource.git

@@ -1,0 +1,6 @@
+#include "version.hpp"
+
+const unsigned long long version::major = @VERSION_MAJOR@;
+const unsigned long long version::minor = @VERSION_MINOR@;
+const unsigned long long version::patch = @VERSION_PATCH@;
+const std::string_view   version::tweak = "@VERSION_TWEAK@";
