@@ -13,6 +13,7 @@ add_library ( imgui_base STATIC
               imgui/examples/libs/gl3w/GL/gl3w.h
               imgui/examples/libs/gl3w/GL/glcorearb.h
               )
+target_compile_definitions ( imgui_base PUBLIC IMGUI_IMPL_OPENGL_LOADER_GL3W )
 target_include_directories ( imgui_base PUBLIC
                              ${CMAKE_CURRENT_LIST_DIR}/imgui
                              ${CMAKE_CURRENT_LIST_DIR}/imgui/examples/libs/gl3w
