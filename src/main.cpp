@@ -6,6 +6,7 @@
 #include "version.hpp"
 #include "util/configure_logging.hpp"
 #include "gui/ImGuiWrapper.hpp"
+#include "CheckersWindow.hpp"
 
 std::atomic_bool shouldRun = true;
 
@@ -15,6 +16,15 @@ int main() try {
     std::signal( SIGTERM, signalHandler );
     util::ConfigureLogging();
     LOG4CPLUS_DEBUG( log4cplus::Logger::getRoot(), "Running version: " << version::longVersion());
+
+    gui::ImGuiWrapper imGuiWrapper{ "Checkers" };
+    CheckersWindow    checkersWindow{ imGuiWrapper };
+
+    while ( shouldRun && !imGuiWrapper.shouldClose()) {
+        auto f = imGuiWrapper.frame( 20 );
+        checkersWindow();
+    }
+
     LOG4CPLUS_DEBUG( log4cplus::Logger::getRoot(), "Application exiting normally" );
     return 0;
 }

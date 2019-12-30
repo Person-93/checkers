@@ -25,11 +25,23 @@ target_include_directories ( image PRIVATE ../vendor/embed-resource )
 
 add_library ( version version.hpp ${version_file} )
 
+add_library ( checkers
+              Checkers.hpp
+              Checkers.cpp
+              )
+
+add_library ( checkers_window
+              CheckersWindow.hpp
+              CheckersWindow.cpp
+              )
+target_link_libraries ( checkers_window PUBLIC imgui image images checkers )
+target_include_directories ( checkers_window PRIVATE ../vendor/embed-resource )
+
 add_executable ( checkers_exe
                  main.cpp
                  )
 target_link_libraries ( checkers_exe
+                        checkers_window
                         logging
-                        imgui
                         version
                         )
