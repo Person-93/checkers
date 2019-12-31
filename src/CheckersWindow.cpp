@@ -52,19 +52,20 @@ void CheckersWindow::initializeValues() {
     const ImVec2 mouseBoardPos = { mouseLocalPos.x - borderSize * windowSize.x / imgSize,
                                    mouseLocalPos.y - borderSize * windowSize.y / imgSize };
     const ImVec2 scaledCellSize{ imgCellSize * windowSize.x / imgSize, imgCellSize * windowSize.y / imgSize };
-    squareHovered     = { mouseBoardPos.x / scaledCellSize.x, mouseBoardPos.y / scaledCellSize.y };
-    if ( squareHovered->first < 0 || squareHovered->first >= 8 ||
-         squareHovered->second < 0 || squareHovered->second >= 8 )
+    squareHovered     = { static_cast<int_fast8_t>(mouseBoardPos.x / scaledCellSize.x),
+                          static_cast<int_fast8_t>(mouseBoardPos.y / scaledCellSize.y) };
+    if ( squareHovered->x < 0 || squareHovered->x >= 8 ||
+         squareHovered->y < 0 || squareHovered->y >= 8 )
         squareHovered = std::nullopt;
 
     ImGui::Begin( "Debugging Info" );
-    ImGui::Text( "Hovered: %d, %d", squareHovered ? squareHovered->first : -1,
-                 squareHovered ? squareHovered->second : -1 );
-    ImGui::Text( "Dragging: %d, %d", pieceDragging ? pieceDragging->first : -1,
-                 pieceDragging ? pieceDragging->second : -1 );
+    ImGui::Text( "Hovered: %d, %d", squareHovered ? squareHovered->x : -1,
+                 squareHovered ? squareHovered->y : -1 );
+    ImGui::Text( "Dragging: %d, %d", pieceDragging ? pieceDragging->x : -1,
+                 pieceDragging ? pieceDragging->y : -1 );
     ImGui::Text( "Mouse: %.0f, %.0f", mouseBoardPos.x, mouseBoardPos.y );
     const auto piece = checkers.movingPiece();
-    ImGui::Text( "Moving: %d, %d", piece ? piece->first : -1, piece ? piece->second : -1 );
+    ImGui::Text( "Moving: %d, %d", piece ? piece->x : -1, piece ? piece->y : -1 );
     ImGui::End();
 }
 
@@ -79,7 +80,7 @@ void CheckersWindow::drawPieces() {
     for ( int i = 0; i < 8; ++i ) {
         for ( int j = 0; j < 8; ++j ) {
             // skip piece currently being moved
-            if ( pieceDragging.has_value() && pieceDragging->first == i && pieceDragging->second == j ) continue;
+            if ( pieceDragging.has_value() && pieceDragging->x == i && pieceDragging->y == j ) continue;
 
             gui::Image* image;
             switch ( checkers.boardState()[ i ][ j ] ) {
@@ -104,7 +105,7 @@ void CheckersWindow::drawPieces() {
     // draw the piece currently being moved
     if ( pieceDragging.has_value()) {
         gui::Image* image;
-        switch ( checkers.boardState().at( pieceDragging->first ).at( pieceDragging->second )) {
+        switch ( checkers.boardState().at( pieceDragging->x ).at( pieceDragging->y )) {
             case Checkers::CellState::EMPTY: THROW_SIMPLE_EXCEPTION( "Empty piece is moving" );
             case Checkers::CellState::RED: image = &redPiece;
                 break;
@@ -126,7 +127,7 @@ void CheckersWindow::drawPieces() {
 void CheckersWindow::handleClickAndDrag() {
     if ( ImGui::IsMouseDragging( 0 )) {
         if ( !pieceDragging.has_value() && squareHovered.has_value()) {
-            auto cell = checkers.boardState()[ squareHovered->first ][ squareHovered->second ];
+            auto cell = checkers.boardState()[ squareHovered->x ][ squareHovered->y ];
             if ( cell == Checkers::CellState::EMPTY ) return;
 
             bool isRedTurn  = checkers.isRedTurn();
@@ -138,7 +139,7 @@ void CheckersWindow::handleClickAndDrag() {
     }
     else if ( pieceDragging.has_value()) {
         if ( squareHovered.has_value() && pieceDragging != squareHovered )
-            if ( checkers.move( *pieceDragging, *squareHovered ))
+            if ( checkers.move( { *pieceDragging, *squareHovered } ))
                 knock.play();
         pieceDragging = std::nullopt;
     }

@@ -22,21 +22,21 @@ Checkers::Checkers() : boardState_{} {
     }
 }
 
-bool Checkers::move( std::pair<int, int> start, std::pair<int, int> end ) {
+bool Checkers::move( Move theMove ) {
     // check if in middle of double-jumping
-    if ( pieceMoving.has_value() && pieceMoving != start ) return false;
+    if ( pieceMoving.has_value() && pieceMoving != theMove.start ) return false;
 
     // validate indices
-    if ( start.first < 0 || start.first >= 8 ) return false;
-    if ( start.second < 0 || start.second >= 8 ) return false;
-    if ( end.first < 0 || end.first >= 8 ) return false;
-    if ( end.second < 0 || end.second >= 8 ) return false;
+    if ( theMove.start.x < 0 || theMove.start.x >= 8 ) return false;
+    if ( theMove.start.y < 0 || theMove.start.y >= 8 ) return false;
+    if ( theMove.end.x < 0 || theMove.end.x >= 8 ) return false;
+    if ( theMove.end.y < 0 || theMove.end.y >= 8 ) return false;
 
     // make sure end cell is on the right color square
-    if (( end.first + end.second ) % 2 == 0 ) return false;
+    if (( theMove.end.x + theMove.end.y ) % 2 == 0 ) return false;
 
-    CellState& startCell   = boardState_[ start.first ][ start.second ];
-    CellState& endCell     = boardState_[ end.first ][ end.second ];
+    CellState& startCell   = boardState_[ theMove.start.x ][ theMove.start.y ];
+    CellState& endCell     = boardState_[ theMove.end.x ][ theMove.end.y ];
     CellState* captureCell = nullptr;
 
     // make sure moving from non-empty cell to empty cell
@@ -48,17 +48,18 @@ bool Checkers::move( std::pair<int, int> start, std::pair<int, int> end ) {
     if ( !redTurn && startCell != CellState::BLACK && startCell != CellState::BLACK_KING ) return false;
 
     // make sure regular pieces aren't moving backwards
-    if ( startCell == CellState::RED && end.second > start.second ) return false;
-    if ( startCell == CellState::BLACK && end.second < start.second ) return false;
+    if ( startCell == CellState::RED && theMove.end.y > theMove.start.y ) return false;
+    if ( startCell == CellState::BLACK && theMove.end.y < theMove.start.y ) return false;
 
     // make sure piece isn't moving sideways
-    if ( start.first == end.first || start.second == end.second ) return false;
+    if ( theMove.start.x == theMove.end.x || theMove.start.y == theMove.end.y ) return false;
 
     // make sure piece isn't moving too far
-    if ( std::abs( start.first - end.first ) > 2 || std::abs( start.second - end.second ) > 2 ) return false;
-    if ( std::abs( start.first - end.first ) == 2 ) {
-        int xCapture = std::max( start.first, end.first ) - 1;
-        int yCapture = std::max( start.second, end.second ) - 1;
+    if ( std::abs( theMove.start.x - theMove.end.x ) > 2 || std::abs( theMove.start.y - theMove.end.y ) > 2 )
+        return false;
+    if ( std::abs( theMove.start.x - theMove.end.x ) == 2 ) {
+        int xCapture = std::max( theMove.start.x, theMove.end.x ) - 1;
+        int yCapture = std::max( theMove.start.y, theMove.end.y ) - 1;
         captureCell = &boardState_[ xCapture ][ yCapture ];
         switch ( *captureCell ) {
             case CellState::EMPTY: return false;
@@ -77,22 +78,22 @@ bool Checkers::move( std::pair<int, int> start, std::pair<int, int> end ) {
     if ( captureCell ) *captureCell = CellState::EMPTY;
 
     // promote piece to king if applicable
-    if ( endCell == CellState::BLACK && end.second == 7 ) endCell = CellState::BLACK_KING;
-    else if ( endCell == CellState::RED && end.second == 0 ) endCell = CellState::RED_KING;
+    if ( endCell == CellState::BLACK && theMove.end.y == 7 ) endCell = CellState::BLACK_KING;
+    else if ( endCell == CellState::RED && theMove.end.y == 0 ) endCell = CellState::RED_KING;
 
-    if ( !captureCell || !canJump( end )) {
+    if ( !captureCell || !canJump( theMove.end )) {
         pieceMoving = std::nullopt;
         redTurn     = !redTurn;
     }
     else
-        pieceMoving = end;
+        pieceMoving = theMove.end;
 
     return true;
 }
 
-bool Checkers::canJump( std::pair<int, int> position ) {
-    if ( position.first < 0 || position.first >= 8 ||
-         position.second < 0 || position.second >= 8 )
+bool Checkers::canJump( Position position ) {
+    if ( position.x < 0 || position.x >= 8 ||
+         position.y < 0 || position.y >= 8 )
         return false;
 
     const auto checkDirection = [ & ]( CellState cell, CellState nextCell ) {
@@ -101,40 +102,40 @@ bool Checkers::canJump( std::pair<int, int> position ) {
                && nextCell == CellState::EMPTY;
     };
 
-    switch ( boardState()[ position.first ][ position.second ] ) {
+    switch ( boardState()[ position.x ][ position.y ] ) {
         case CellState::EMPTY: return false;
         case CellState::RED: {
-            if ( position.second <= 1 ) return false;
-            return ( position.first >= 2 &&
-                     checkDirection( boardState()[ position.first - 1 ][ position.second - 1 ],
-                                     boardState()[ position.first - 2 ][ position.second - 2 ] )) ||
-                   ( position.first <= 5 &&
-                     checkDirection( boardState()[ position.first + 1 ][ position.second - 1 ],
-                                     boardState()[ position.first + 2 ][ position.second - 2 ] ));
+            if ( position.y <= 1 ) return false;
+            return ( position.x >= 2 &&
+                     checkDirection( boardState()[ position.x - 1 ][ position.y - 1 ],
+                                     boardState()[ position.x - 2 ][ position.y - 2 ] )) ||
+                   ( position.x <= 5 &&
+                     checkDirection( boardState()[ position.x + 1 ][ position.y - 1 ],
+                                     boardState()[ position.x + 2 ][ position.y - 2 ] ));
         }
         case CellState::BLACK: {
-            if ( position.second >= 6 ) return false;
-            return ( position.first >= 2 &&
-                     checkDirection( boardState()[ position.first - 1 ][ position.second + 1 ],
-                                     boardState()[ position.first - 2 ][ position.second + 2 ] )) ||
-                   ( position.first <= 5 &&
-                     checkDirection( boardState()[ position.first + 1 ][ position.second + 1 ],
-                                     boardState()[ position.first + 2 ][ position.second + 2 ] ));
+            if ( position.y >= 6 ) return false;
+            return ( position.x >= 2 &&
+                     checkDirection( boardState()[ position.x - 1 ][ position.y + 1 ],
+                                     boardState()[ position.x - 2 ][ position.y + 2 ] )) ||
+                   ( position.x <= 5 &&
+                     checkDirection( boardState()[ position.x + 1 ][ position.y + 1 ],
+                                     boardState()[ position.x + 2 ][ position.y + 2 ] ));
         }
         case CellState::RED_KING: [[fallthrough]];
         case CellState::BLACK_KING: {
-            return ( position.first >= 2 && position.second >= 2 &&
-                     checkDirection( boardState()[ position.first - 1 ][ position.second - 1 ],
-                                     boardState()[ position.first - 2 ][ position.second - 2 ] )) ||
-                   ( position.first >= 2 && position.second <= 5 &&
-                     checkDirection( boardState()[ position.first - 1 ][ position.second + 1 ],
-                                     boardState()[ position.first - 2 ][ position.second + 2 ] )) ||
-                   ( position.first <= 5 && position.second >= 2 &&
-                     checkDirection( boardState()[ position.first + 1 ][ position.second - 1 ],
-                                     boardState()[ position.first + 2 ][ position.second - 2 ] )) ||
-                   ( position.first <= 5 && position.second <= 5 &&
-                     checkDirection( boardState()[ position.first + 1 ][ position.second + 1 ],
-                                     boardState()[ position.first + 2 ][ position.second + 2 ] ));
+            return ( position.x >= 2 && position.y >= 2 &&
+                     checkDirection( boardState()[ position.x - 1 ][ position.y - 1 ],
+                                     boardState()[ position.x - 2 ][ position.y - 2 ] )) ||
+                   ( position.x >= 2 && position.y <= 5 &&
+                     checkDirection( boardState()[ position.x - 1 ][ position.y + 1 ],
+                                     boardState()[ position.x - 2 ][ position.y + 2 ] )) ||
+                   ( position.x <= 5 && position.y >= 2 &&
+                     checkDirection( boardState()[ position.x + 1 ][ position.y - 1 ],
+                                     boardState()[ position.x + 2 ][ position.y - 2 ] )) ||
+                   ( position.x <= 5 && position.y <= 5 &&
+                     checkDirection( boardState()[ position.x + 1 ][ position.y + 1 ],
+                                     boardState()[ position.x + 2 ][ position.y + 2 ] ));
         }
     }
 }

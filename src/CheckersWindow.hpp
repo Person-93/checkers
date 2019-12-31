@@ -21,16 +21,16 @@ private:
 
     Checkers checkers{};
     gui::ImGuiWrapper& imGuiWrapper;
-    gui::WindowConfig                  config;
-    std::optional<std::pair<int, int>> pieceDragging;
-    std::optional<std::pair<int, int>> squareHovered;
-    gui::Image                         board;
-    gui::Image                         blackPiece;
-    gui::Image                         redPiece;
-    gui::Image                         blackKing;
-    gui::Image                         redKing;
-    SoundSystem                        soundSystem;
-    Sound                              knock;
+    gui::WindowConfig                 config;
+    std::optional<Checkers::Position> pieceDragging;
+    std::optional<Checkers::Position> squareHovered;
+    gui::Image                        board;
+    gui::Image                        blackPiece;
+    gui::Image                        redPiece;
+    gui::Image                        blackKing;
+    gui::Image                        redKing;
+    SoundSystem                       soundSystem;
+    Sound                             knock;
 
     float xOffset;
     float yOffset;
