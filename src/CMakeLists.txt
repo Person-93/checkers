@@ -23,6 +23,15 @@ add_library ( image
 target_link_libraries ( image PUBLIC imgui )
 target_include_directories ( image PRIVATE ../vendor/embed-resource )
 
+add_library ( sound
+              util/SoundSystem.hpp
+              util/SoundSystem.cpp
+              util/Sound.hpp
+              util/Sound.cpp
+              )
+target_link_libraries ( sound PUBLIC alut logging )
+target_include_directories ( sound PRIVATE ../vendor/embed-resource )
+
 add_library ( version version.hpp ${version_file} )
 
 add_library ( checkers
@@ -34,7 +43,7 @@ add_library ( checkers_window
               CheckersWindow.hpp
               CheckersWindow.cpp
               )
-target_link_libraries ( checkers_window PUBLIC imgui image images checkers )
+target_link_libraries ( checkers_window PUBLIC imgui image images sound sounds checkers )
 target_include_directories ( checkers_window PRIVATE ../vendor/embed-resource )
 
 add_executable ( checkers_exe

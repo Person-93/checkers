@@ -15,7 +15,8 @@ CheckersWindow::CheckersWindow( gui::ImGuiWrapper& imGuiWrapper ) :
         blackPiece( imGuiWrapper, LOAD_RESOURCE( BlackPiece_png )),
         redPiece( imGuiWrapper, LOAD_RESOURCE( RedPiece_png )),
         blackKing( imGuiWrapper, LOAD_RESOURCE( BlackKing_png )),
-        redKing( imGuiWrapper, LOAD_RESOURCE( RedKing_png )) {}
+        redKing( imGuiWrapper, LOAD_RESOURCE( RedKing_png )),
+        knock( soundSystem.makeSound( LOAD_RESOURCE( knock_wav ))) {}
 
 void CheckersWindow::operator()() {
     auto displaySize = ImGui::GetIO().DisplaySize;
@@ -33,9 +34,9 @@ void CheckersWindow::operator()() {
 }
 
 void CheckersWindow::initializeValues() {
-    constexpr int imgSize         = 2048;
-    constexpr int borderSize      = 138;
-    constexpr int imgCellSize     = 222;
+    constexpr int imgSize     = 2048;
+    constexpr int borderSize  = 138;
+    constexpr int imgCellSize = 222;
 
     const auto windowSize = ImGui::GetWindowSize();
     xOffset    = windowSize.x * borderSize / imgSize;
@@ -128,7 +129,8 @@ void CheckersWindow::handleClickAndDrag() {
     }
     else if ( pieceDragging.has_value()) {
         if ( squareHovered.has_value() && pieceDragging != squareHovered )
-            checkers.move( *pieceDragging, *squareHovered );
+            if ( checkers.move( *pieceDragging, *squareHovered ))
+                knock.play();
         pieceDragging = std::nullopt;
     }
 }

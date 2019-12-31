@@ -41,3 +41,6 @@ set ( LOG4CPLUS_BUILD_TESTING OFF )
 set ( WITH_UNIT_TESTS OFF )
 add_subdirectory ( log4cplus )
 add_subdirectory ( embed-resource )
+
+add_subdirectory ( freealut )
+target_include_directories ( alut PUBLIC freealut/include )

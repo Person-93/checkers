@@ -10,3 +10,6 @@
 [submodule "vendor/embed-resource"]
 	path = vendor/embed-resource
 	url = https://github.com/cyrilcode/embed-resource.git
+[submodule "vendor/freealut"]
+	path = vendor/freealut
+	url = https://github.com/vancegroup/freealut.git
