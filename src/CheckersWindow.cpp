@@ -125,9 +125,16 @@ void CheckersWindow::drawPieces() {
 
 void CheckersWindow::handleClickAndDrag() {
     if ( ImGui::IsMouseDragging( 0 )) {
-        if ( !pieceDragging.has_value() && squareHovered.has_value() &&
-             checkers.boardState()[ squareHovered->first ][ squareHovered->second ] != Checkers::CellState::EMPTY )
-            pieceDragging = squareHovered;
+        if ( !pieceDragging.has_value() && squareHovered.has_value()) {
+            auto cell = checkers.boardState()[ squareHovered->first ][ squareHovered->second ];
+            if ( cell == Checkers::CellState::EMPTY ) return;
+
+            bool isRedTurn  = checkers.isRedTurn();
+            bool isRedPiece = cell == Checkers::CellState::RED || cell == Checkers::CellState::RED_KING;
+
+            if ( isRedPiece == isRedTurn )
+                pieceDragging = squareHovered;
+        }
     }
     else if ( pieceDragging.has_value()) {
         if ( squareHovered.has_value() && pieceDragging != squareHovered )
