@@ -27,6 +27,8 @@ public:
 
     [[nodiscard]]  bool isRedTurn() const { return redTurn; }
 
+    [[nodiscard]]std::optional<std::pair<int, int>> movingPiece() const { return pieceMoving; }
+
 private:
     [[nodiscard]] bool canJump( std::pair<int, int> position );
 

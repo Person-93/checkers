@@ -60,9 +60,11 @@ void CheckersWindow::initializeValues() {
     ImGui::Begin( "Debugging Info" );
     ImGui::Text( "Hovered: %d, %d", squareHovered ? squareHovered->first : -1,
                  squareHovered ? squareHovered->second : -1 );
-    ImGui::Text( "Moving: %d, %d", pieceDragging ? pieceDragging->first : -1,
+    ImGui::Text( "Dragging: %d, %d", pieceDragging ? pieceDragging->first : -1,
                  pieceDragging ? pieceDragging->second : -1 );
     ImGui::Text( "Mouse: %.0f, %.0f", mouseBoardPos.x, mouseBoardPos.y );
+    const auto piece = checkers.movingPiece();
+    ImGui::Text( "Moving: %d, %d", piece ? piece->first : -1, piece ? piece->second : -1 );
     ImGui::End();
 }
 
