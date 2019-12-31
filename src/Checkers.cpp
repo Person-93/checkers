@@ -77,7 +77,57 @@ bool Checkers::move( std::pair<int, int> start, std::pair<int, int> end ) {
     if ( endCell == CellState::BLACK && end.second == 7 ) endCell = CellState::BLACK_KING;
     else if ( endCell == CellState::RED && end.second == 0 ) endCell = CellState::RED_KING;
 
-    redTurn = !redTurn;
+    if ( !captureCell || !canJump( end ))
+        redTurn = !redTurn;
 
     return true;
+}
+
+bool Checkers::canJump( std::pair<int, int> position ) {
+    if ( position.first < 0 || position.first >= 8 ||
+         position.second < 0 || position.second >= 8 )
+        return false;
+
+    const auto checkDirection = [ & ]( CellState cell, CellState nextCell ) {
+        return (( redTurn && ( cell == CellState::BLACK || cell == CellState::BLACK_KING )) ||
+                ( !redTurn && ( cell == CellState::RED || cell == CellState::RED_KING )))
+               && nextCell == CellState::EMPTY;
+    };
+
+    switch ( boardState()[ position.first ][ position.second ] ) {
+        case CellState::EMPTY: return false;
+        case CellState::RED: {
+            if ( position.first <= 1 ) return false;
+            return ( position.second >= 2 &&
+                     checkDirection( boardState()[ position.first - 1 ][ position.second - 1 ],
+                                     boardState()[ position.first - 2 ][ position.second - 2 ] )) ||
+                   ( position.second <= 5 &&
+                     checkDirection( boardState()[ position.first + 1 ][ position.second - 1 ],
+                                     boardState()[ position.first + 2 ][ position.second - 2 ] ));
+        }
+        case CellState::BLACK: {
+            if ( position.first >= 6 ) return false;
+            return ( position.second >= 2 &&
+                     checkDirection( boardState()[ position.first - 1 ][ position.second + 1 ],
+                                     boardState()[ position.first - 2 ][ position.second + 2 ] )) ||
+                   ( position.second <= 5 &&
+                     checkDirection( boardState()[ position.first + 1 ][ position.second + 1 ],
+                                     boardState()[ position.first + 2 ][ position.second + 2 ] ));
+        }
+        case CellState::RED_KING: [[fallthrough]];
+        case CellState::BLACK_KING: {
+            return ( position.first >= 2 && position.second >= 2 &&
+                     checkDirection( boardState()[ position.first - 1 ][ position.second - 1 ],
+                                     boardState()[ position.first - 2 ][ position.second - 2 ] )) ||
+                   ( position.first >= 2 && position.second <= 5 &&
+                     checkDirection( boardState()[ position.first - 1 ][ position.second + 1 ],
+                                     boardState()[ position.first - 2 ][ position.second + 2 ] )) ||
+                   ( position.first <= 5 && position.second >= 2 &&
+                     checkDirection( boardState()[ position.first + 1 ][ position.second - 1 ],
+                                     boardState()[ position.first + 2 ][ position.second - 2 ] )) ||
+                   ( position.first <= 5 && position.second <= 5 &&
+                     checkDirection( boardState()[ position.first + 1 ][ position.second + 1 ],
+                                     boardState()[ position.first + 2 ][ position.second + 2 ] ));
+        }
+    }
 }
