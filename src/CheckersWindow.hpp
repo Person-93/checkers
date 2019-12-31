@@ -12,6 +12,10 @@ public:
 
     void operator()();
 
+    [[nodiscard]] bool gameOver() const { return checkers.legalMoves().empty(); }
+
+    [[nodiscard]] bool isRedTurn() const { return checkers.isRedTurn(); }
+
 private:
     void initializeValues();
 

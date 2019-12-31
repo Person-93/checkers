@@ -66,6 +66,9 @@ void CheckersWindow::initializeValues() {
     ImGui::Text( "Mouse: %.0f, %.0f", mouseBoardPos.x, mouseBoardPos.y );
     const auto piece = checkers.movingPiece();
     ImGui::Text( "Moving: %d, %d", piece ? piece->x : -1, piece ? piece->y : -1 );
+    ImGui::Text( "Capture?: %s", checkers.canCapture() ? "true" : "false" );
+    ImGui::Text( "Turn: %s", checkers.isRedTurn() ? "red" : "black" );
+    ImGui::Text( "Moves: %lu", checkers.legalMoves().size());
     ImGui::End();
 }
 

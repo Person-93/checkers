@@ -20,57 +20,18 @@ Checkers::Checkers() : boardState_{} {
     for ( int i = 0; i < boardState().size(); i += 2 ) {
         boardState_[ i ][ 5 ] = CellState::RED;
     }
+
+    calculateLegalMoves();
 }
 
 bool Checkers::move( Move theMove ) {
-    // check if in middle of double-jumping
-    if ( pieceMoving.has_value() && pieceMoving != theMove.start ) return false;
-
-    // validate indices
-    if ( theMove.start.x < 0 || theMove.start.x >= 8 ) return false;
-    if ( theMove.start.y < 0 || theMove.start.y >= 8 ) return false;
-    if ( theMove.end.x < 0 || theMove.end.x >= 8 ) return false;
-    if ( theMove.end.y < 0 || theMove.end.y >= 8 ) return false;
-
-    // make sure end cell is on the right color square
-    if (( theMove.end.x + theMove.end.y ) % 2 == 0 ) return false;
+    auto iter = legalMoves_.find( theMove );
+    if ( iter == legalMoves_.end()) return false;
+    if ( canCapture_ && iter->second == nullptr ) return false;
 
     CellState& startCell   = boardState_[ theMove.start.x ][ theMove.start.y ];
     CellState& endCell     = boardState_[ theMove.end.x ][ theMove.end.y ];
-    CellState* captureCell = nullptr;
-
-    // make sure moving from non-empty cell to empty cell
-    if ( startCell == CellState::EMPTY ) return false;
-    if ( endCell != CellState::EMPTY ) return false;
-
-    // make sure player isn't moving out of turn
-    if ( redTurn && startCell != CellState::RED && startCell != CellState::RED_KING ) return false;
-    if ( !redTurn && startCell != CellState::BLACK && startCell != CellState::BLACK_KING ) return false;
-
-    // make sure regular pieces aren't moving backwards
-    if ( startCell == CellState::RED && theMove.end.y > theMove.start.y ) return false;
-    if ( startCell == CellState::BLACK && theMove.end.y < theMove.start.y ) return false;
-
-    // make sure piece isn't moving sideways
-    if ( theMove.start.x == theMove.end.x || theMove.start.y == theMove.end.y ) return false;
-
-    // make sure piece isn't moving too far
-    if ( std::abs( theMove.start.x - theMove.end.x ) > 2 || std::abs( theMove.start.y - theMove.end.y ) > 2 )
-        return false;
-    if ( std::abs( theMove.start.x - theMove.end.x ) == 2 ) {
-        int xCapture = std::max( theMove.start.x, theMove.end.x ) - 1;
-        int yCapture = std::max( theMove.start.y, theMove.end.y ) - 1;
-        captureCell = &boardState_[ xCapture ][ yCapture ];
-        switch ( *captureCell ) {
-            case CellState::EMPTY: return false;
-            case CellState::RED: [[fallthrough]];
-            case CellState::RED_KING: if ( redTurn ) return false;
-                break;
-            case CellState::BLACK: [[fallthrough]];
-            case CellState::BLACK_KING: if ( !redTurn ) return false;
-                break;
-        }
-    }
+    CellState* captureCell = iter->second;
 
     // change state of cells and capture piece if applicable
     endCell   = startCell;
@@ -88,6 +49,7 @@ bool Checkers::move( Move theMove ) {
     else
         pieceMoving = theMove.end;
 
+    calculateLegalMoves();
     return true;
 }
 
@@ -137,5 +99,91 @@ bool Checkers::canJump( Position position ) {
                      checkDirection( boardState()[ position.x + 1 ][ position.y + 1 ],
                                      boardState()[ position.x + 2 ][ position.y + 2 ] ));
         }
+    }
+}
+
+void Checkers::calculateLegalMoves() {
+    legalMoves_.clear();
+
+    if ( pieceMoving.has_value() ) {
+        calculateMovesForPosition( *pieceMoving );
+        return;
+    }
+
+    canCapture_ = false;
+    for ( int_fast8_t i = 0; i < 8; ++i ) {
+        for ( int_fast8_t j = 0; j < 8; ++j ) {
+            calculateMovesForPosition( { i, j } );
+        }
+    }
+}
+
+void Checkers::calculateMovesForPosition( Position position ) {
+    switch ( boardState()[ position.x ][ position.y ] ) {
+        case CellState::EMPTY: break;
+        case CellState::RED:
+            if ( isRedTurn())
+                checkRedForwardMoves( position );
+        break;
+        case CellState::BLACK:
+            if ( !isRedTurn())
+                checkBlackForwardMoves( position );
+        break;
+        case CellState::RED_KING:
+            if ( isRedTurn()) {
+                checkRedForwardMoves( position );
+                checkBlackForwardMoves( position );
+            }
+        break;
+        case CellState::BLACK_KING:
+            if ( !isRedTurn()) {
+                checkRedForwardMoves( position );
+                checkBlackForwardMoves( position );
+            }
+        break;
+    }
+}
+
+void Checkers::checkRedForwardMoves( Position position ) {
+    checkDirection( position,
+                    { static_cast<int_fast8_t>(position.x - 1), static_cast<int_fast8_t>(position.y - 1 ) },
+                    { static_cast<int_fast8_t>(position.x - 2), static_cast<int_fast8_t>(position.y - 2) } );
+    checkDirection( position,
+                    { static_cast<int_fast8_t>(position.x + 1), static_cast<int_fast8_t>(position.y - 1) },
+                    { static_cast<int_fast8_t>(position.x + 2), static_cast<int_fast8_t>(position.y - 2 ) } );
+}
+
+void Checkers::checkBlackForwardMoves( Position position ) {
+    checkDirection( position,
+                    { static_cast<int_fast8_t>(position.x - 1), static_cast<int_fast8_t>(position.y + 1) },
+                    { static_cast<int_fast8_t>(position.x - 2), static_cast<int_fast8_t>(position.y + 2) } );
+    checkDirection( position,
+                    { static_cast<int_fast8_t>(position.x + 1), static_cast<int_fast8_t>(position.y + 1) },
+                    { static_cast<int_fast8_t>(position.x + 2), static_cast<int_fast8_t>(position.y + 2) } );
+}
+
+void Checkers::checkDirection( Position start, Position cell, Position nextCell ) {
+    const auto validateCell = []( const Position& position ) -> bool {
+        return position.x >= 0 && position.x < 8 && position.y >= 0 && position.y < 8;
+    };
+
+    CellState& cellState = boardState_[ cell.x ][ cell.y ];
+
+    if ( validateCell( cell ) && cellState == CellState::EMPTY ) {
+        legalMoves_.insert( {{ start, cell }, nullptr } );
+        return;
+    }
+
+    if ( !validateCell( nextCell )) return;
+
+    // can't jump own piece
+    if ( bool isRedPiece = cellState == CellState::RED || cellState == CellState::RED_KING;
+            isRedPiece == redTurn )
+        return;
+
+    if ( CellState nextCellState = boardState_[ nextCell.x ][ nextCell.y ];
+            nextCellState == CellState::EMPTY ) {
+        legalMoves_.insert( {{ start, nextCell }, &cellState } );
+        canCapture_ = true;
     }
 }

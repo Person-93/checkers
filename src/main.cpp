@@ -12,6 +12,8 @@ std::atomic_bool shouldRun = true;
 
 extern "C" void signalHandler( int ) { shouldRun = false; }
 
+void gameOverWindow( gui::ImGuiWrapper& imGuiWrapper, bool isRedTurn );
+
 int main() try {
     std::signal( SIGTERM, signalHandler );
     util::ConfigureLogging();
@@ -23,6 +25,7 @@ int main() try {
     while ( shouldRun && !imGuiWrapper.shouldClose()) {
         auto f = imGuiWrapper.frame( 20 );
         checkersWindow();
+        if ( checkersWindow.gameOver()) gameOverWindow( imGuiWrapper, checkersWindow.isRedTurn());
     }
 
     LOG4CPLUS_DEBUG( log4cplus::Logger::getRoot(), "Application exiting normally" );
@@ -31,4 +34,11 @@ int main() try {
 catch ( ... ) {
     LOG4CPLUS_FATAL( log4cplus::Logger::getRoot(), boost::current_exception_diagnostic_information( true ));
     return -1;
+}
+
+void gameOverWindow( gui::ImGuiWrapper& imGuiWrapper, bool isRedTurn ) {
+    static gui::WindowConfig config{ .title = "Game Over" };
+    imGuiWrapper.window( config, [ & ]() {
+        ImGui::Text( "%s wins!", isRedTurn ? "Black" : "Red" );
+    } );
 }
