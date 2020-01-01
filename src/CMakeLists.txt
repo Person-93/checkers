@@ -48,6 +48,8 @@ target_include_directories ( checkers_window PRIVATE ../vendor/embed-resource )
 
 add_executable ( checkers_exe
                  main.cpp
+                 MainMenu.hpp
+                 MainMenu.cpp
                  )
 target_link_libraries ( checkers_exe
                         checkers_window

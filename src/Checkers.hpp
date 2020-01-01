@@ -31,7 +31,7 @@ public:
     // use the move as the key, and have a pointer to the captured cell as the value
     using LegalMoves = std::unordered_map<Move, CellState*, MoveHash>;
 
-    Checkers();
+    Checkers( bool forceCapture );
 
     Checkers( const Checkers& ) = default;
 
@@ -71,6 +71,7 @@ private:
     std::optional<Position> pieceMoving = std::nullopt;
     bool                    redTurn     = true;
     bool                    canCapture_ = false;
+    bool                    forceCapture;
 };
 
 inline bool operator==( const Checkers::Position& a, const Checkers::Position& b ) {

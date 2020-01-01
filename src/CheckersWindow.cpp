@@ -16,7 +16,7 @@ CheckersWindow::CheckersWindow( gui::ImGuiWrapper& imGuiWrapper ) :
         redPiece( imGuiWrapper, LOAD_RESOURCE( RedPiece_png )),
         blackKing( imGuiWrapper, LOAD_RESOURCE( BlackKing_png )),
         redKing( imGuiWrapper, LOAD_RESOURCE( RedKing_png )),
-        knock( soundSystem.makeSound( LOAD_RESOURCE( knock_wav ))) {}
+        knock( soundSystem.makeSound( LOAD_RESOURCE( knock_wav ))), checkers( false ) {}
 
 void CheckersWindow::operator()() {
     auto displaySize = ImGui::GetIO().DisplaySize;
@@ -146,4 +146,8 @@ void CheckersWindow::handleClickAndDrag() {
                 knock.play();
         pieceDragging = std::nullopt;
     }
+}
+
+void CheckersWindow::reset( bool forceCapture ) {
+    checkers = { forceCapture };
 }

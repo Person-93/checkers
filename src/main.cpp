@@ -7,6 +7,7 @@
 #include "util/configure_logging.hpp"
 #include "gui/ImGuiWrapper.hpp"
 #include "CheckersWindow.hpp"
+#include "MainMenu.hpp"
 
 std::atomic_bool shouldRun = true;
 
@@ -21,9 +22,11 @@ int main() try {
 
     gui::ImGuiWrapper imGuiWrapper{ "Checkers" };
     CheckersWindow    checkersWindow{ imGuiWrapper };
+    MainMenu          mainMenu{ checkersWindow, imGuiWrapper };
 
     while ( shouldRun && !imGuiWrapper.shouldClose()) {
         auto f = imGuiWrapper.frame( 20 );
+        mainMenu();
         checkersWindow();
         if ( checkersWindow.gameOver()) gameOverWindow( imGuiWrapper, checkersWindow.isRedTurn());
     }

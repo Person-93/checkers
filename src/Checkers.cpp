@@ -1,6 +1,6 @@
 #include "Checkers.hpp"
 
-Checkers::Checkers() : boardState_{} {
+Checkers::Checkers( bool forceCapture ) : boardState_{}, forceCapture{ forceCapture } {
     for ( int i = 1; i < boardState().size(); i += 2 ) {
         boardState_[ i ][ 0 ] = CellState::BLACK;
     }
@@ -27,7 +27,7 @@ Checkers::Checkers() : boardState_{} {
 bool Checkers::move( Move theMove ) {
     auto iter = legalMoves_.find( theMove );
     if ( iter == legalMoves_.end()) return false;
-    if ( canCapture_ && iter->second == nullptr ) return false;
+    if ( forceCapture && canCapture_ && iter->second == nullptr ) return false;
 
     CellState& startCell   = boardState_[ theMove.start.x ][ theMove.start.y ];
     CellState& endCell     = boardState_[ theMove.end.x ][ theMove.end.y ];
@@ -105,7 +105,7 @@ bool Checkers::canJump( Position position ) {
 void Checkers::calculateLegalMoves() {
     legalMoves_.clear();
 
-    if ( pieceMoving.has_value() ) {
+    if ( pieceMoving.has_value()) {
         calculateMovesForPosition( *pieceMoving );
         return;
     }
@@ -124,23 +124,23 @@ void Checkers::calculateMovesForPosition( Position position ) {
         case CellState::RED:
             if ( isRedTurn())
                 checkRedForwardMoves( position );
-        break;
+            break;
         case CellState::BLACK:
             if ( !isRedTurn())
                 checkBlackForwardMoves( position );
-        break;
+            break;
         case CellState::RED_KING:
             if ( isRedTurn()) {
                 checkRedForwardMoves( position );
                 checkBlackForwardMoves( position );
             }
-        break;
+            break;
         case CellState::BLACK_KING:
             if ( !isRedTurn()) {
                 checkRedForwardMoves( position );
                 checkBlackForwardMoves( position );
             }
-        break;
+            break;
     }
 }
 

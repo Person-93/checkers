@@ -12,6 +12,8 @@ public:
 
     void operator()();
 
+    void reset( bool forceCapture );
+
     [[nodiscard]] bool gameOver() const { return checkers.legalMoves().empty(); }
 
     [[nodiscard]] bool isRedTurn() const { return checkers.isRedTurn(); }
@@ -23,7 +25,7 @@ private:
 
     void handleClickAndDrag();
 
-    Checkers checkers{};
+    Checkers checkers{ true };
     gui::ImGuiWrapper& imGuiWrapper;
     gui::WindowConfig                 config;
     std::optional<Checkers::Position> pieceDragging;
